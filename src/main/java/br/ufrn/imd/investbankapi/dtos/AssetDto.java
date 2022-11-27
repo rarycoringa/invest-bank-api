@@ -18,10 +18,9 @@ public class AssetDto {
     @Size(max = 30)
     private String name;
 
-    // @NotBlank
-    // @DecimalMin(value = "0.0", inclusive = true)
-    // @Digits(integer = 6, fraction = 2)
-    // private BigDecimal price;
+    @Positive
+    @Digits(integer = 6, fraction = 2)
+    private BigDecimal price;
 
     @NotBlank
     @Size(max = 30)
@@ -43,6 +42,14 @@ public class AssetDto {
         this.name = name;
     }
 
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
     public String getType() {
         return type;
     }
@@ -50,4 +57,5 @@ public class AssetDto {
     public void setType(String type) {
         this.type = type;
     }
+
 }
