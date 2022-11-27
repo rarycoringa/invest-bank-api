@@ -1,15 +1,21 @@
 package br.ufrn.imd.investbankapi.controllers;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import javax.validation.Valid;
 
+import org.apache.catalina.connector.Response;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,8 +35,28 @@ public class AssetController {
         this.assetService = assetService;
     }
 
-    @PostMapping()
+    @GetMapping
+    public ResponseEntity<List<Asset>> getAllAssets() {
+        return ResponseEntity.status(HttpStatus.OK).body(assetService.findAll());
+    }
+
+    @GetMapping("/{code}")
+    public ResponseEntity<Object> getOneAsset(@PathVariable(value = "code") String code) {
+        Optional<Asset> assetOptional = assetService.findByCode(code);
+
+        if (!assetOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Asset with code %s not found.", code));
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(assetOptional.get());
+    }
+
+    @PostMapping
     public ResponseEntity<Object> createAsset(@RequestBody @Valid AssetDto assetDto) {
+        if (assetService.existsByCode(assetDto.getCode())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(String.format("Code %s is already in use!", assetDto.getCode()));
+        }
+
         var asset = new Asset();
 
         BeanUtils.copyProperties(assetDto, asset);
@@ -38,20 +64,35 @@ public class AssetController {
         return ResponseEntity.status(HttpStatus.CREATED).body(assetService.save(asset));
     }
 
-    // @GetMapping("/assets")
-    // public ArrayList<Asset> getAssets() {
-    //     ArrayList<Asset> assets = new ArrayList<Asset>();
+    @PutMapping("/{code}")
+    public ResponseEntity<Object> updateAsset(@PathVariable(value = "code") String code, @RequestBody @Valid AssetDto assetDto) {
+        Optional<Asset> assetOptional = assetService.findByCode(code);
 
-    //     Asset google = new Asset(1, "GOGL34", "Google BDR", 44.33, "Stock");
-    //     Asset amazon = new Asset(2, "AMZO34", "Amazon BDR", 26.10, "Stock");
-    //     Asset microsoft = new Asset(3, "MSFT34", "Microsoft BDR", 54.34, "Stock");
-    //     Asset maxi = new Asset(4, "MXRF11", "Maxi Renda FII", 105.16, "Building Fund");
+        if (!assetOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Asset with code %s not found.", code));
+        }
 
-    //     assets.add(google);
-    //     assets.add(amazon);
-    //     assets.add(microsoft);
-    //     assets.add(maxi);
+        var asset = assetOptional.get();
 
-    //     return assets;
-    // }
+        asset.setCode(assetDto.getCode());
+        asset.setName(assetDto.getName());
+        asset.setPrice(assetDto.getPrice());
+        asset.setType(assetDto.getType());
+
+        return ResponseEntity.status(HttpStatus.OK).body(assetService.save(asset));
+    }
+
+    @DeleteMapping("/{code}")
+    public ResponseEntity<Object> deleteAsset(@PathVariable(value = "code") String code) {
+        Optional<Asset> assetOptional = assetService.findByCode(code);
+
+        if (!assetOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Asset with code %s not found.", code));
+        }
+
+        assetService.delete(assetOptional.get());
+
+        return ResponseEntity.status(HttpStatus.OK).body(String.format("Asset with code %s successfully deleted!", code));
+    }
+
 }
