@@ -26,7 +26,7 @@ public class Asset implements Serializable {
     @Column(nullable = false, unique = false, length = 30)
     private String name;
 
-    @Column(nullable = false, precision = 2)
+    @Column(nullable = false, scale = 2)
     private BigDecimal price;
 
     @Column(nullable = false, length = 30)
