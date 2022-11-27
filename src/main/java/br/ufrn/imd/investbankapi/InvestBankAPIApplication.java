@@ -15,6 +15,7 @@ public class InvestBankAPIApplication {
 
 	@GetMapping("/")
 	public String index(){
+		
 		return "Hello World!";
 	}
 }
