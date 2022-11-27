@@ -2,11 +2,13 @@ package br.ufrn.imd.investbankapi.dtos;
 
 import java.math.BigDecimal;
 
-import javax.validation.constraints.DecimalMin;
+import javax.persistence.MapKeyEnumerated;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
+
+import br.ufrn.imd.investbankapi.models.AssetTypeEnum;
 
 public class AssetDto {
 
@@ -22,9 +24,8 @@ public class AssetDto {
     @Digits(integer = 6, fraction = 2)
     private BigDecimal price;
 
-    @NotBlank
-    @Size(max = 30)
-    private String type;
+    @MapKeyEnumerated
+    private AssetTypeEnum type;
 
     public String getCode() {
         return code;
@@ -50,11 +51,11 @@ public class AssetDto {
         this.price = price;
     }
 
-    public String getType() {
+    public AssetTypeEnum getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(AssetTypeEnum type) {
         this.type = type;
     }
 

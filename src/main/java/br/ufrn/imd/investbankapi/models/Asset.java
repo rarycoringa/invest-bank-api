@@ -6,10 +6,14 @@ import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+
+import br.ufrn.imd.investbankapi.models.AssetTypeEnum;
 
 @Entity
 @Table(name = "assets")
@@ -29,12 +33,12 @@ public class Asset implements Serializable {
     @Column(nullable = false, scale = 2)
     private BigDecimal price;
 
-    @Column(nullable = false, length = 30)
-    private String type;
+    @Enumerated(EnumType.STRING)
+    private AssetTypeEnum type;
 
     public Asset() {}
 
-    public Asset(String code, String name, BigDecimal price, String type) {
+    public Asset(String code, String name, BigDecimal price, AssetTypeEnum type) {
         this.code = code;
         this.name = name;
         this.price = price;
@@ -69,11 +73,11 @@ public class Asset implements Serializable {
         this.price = price;
     }
 
-    public String getType() {
+    public AssetTypeEnum getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(AssetTypeEnum type) {
         this.type = type;
     }
     
