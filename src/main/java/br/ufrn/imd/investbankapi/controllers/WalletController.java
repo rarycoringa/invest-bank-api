@@ -38,17 +38,6 @@ public class WalletController {
         return ResponseEntity.status(HttpStatus.OK).body(walletService.findAll());
     }
 
-    @GetMapping("/{number}")
-    public ResponseEntity<Object> getOneWallet(@PathVariable(value = "number") int number) {
-        Optional<Wallet> walletOptional = walletService.findByNumber(number);
-
-        if (!walletOptional.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Wallet with number %s not found.", number));
-        }
-
-        return ResponseEntity.status(HttpStatus.OK).body(walletOptional.get());
-    }
-
     @PostMapping
     public ResponseEntity<Object> createWallet(@RequestBody @Valid WalletDto walletDto) {
         if (walletService.existsByNumber(walletDto.getNumber())) {
@@ -60,6 +49,17 @@ public class WalletController {
         BeanUtils.copyProperties(walletDto, wallet);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(walletService.save(wallet));
+    }
+
+    @GetMapping("/{number}")
+    public ResponseEntity<Object> getOneWallet(@PathVariable(value = "number") int number) {
+        Optional<Wallet> walletOptional = walletService.findByNumber(number);
+
+        if (!walletOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Wallet with number %s not found.", number));
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(walletOptional.get());
     }
 
     @PutMapping("/{number}")

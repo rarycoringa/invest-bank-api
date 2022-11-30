@@ -40,17 +40,6 @@ public class AssetController {
         return ResponseEntity.status(HttpStatus.OK).body(assetService.findAll());
     }
 
-    @GetMapping("/{code}")
-    public ResponseEntity<Object> getOneAsset(@PathVariable(value = "code") String code) {
-        Optional<Asset> assetOptional = assetService.findByCode(code);
-
-        if (!assetOptional.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Asset with code %s not found.", code));
-        }
-
-        return ResponseEntity.status(HttpStatus.OK).body(assetOptional.get());
-    }
-
     @PostMapping
     public ResponseEntity<Object> createAsset(@RequestBody @Valid AssetDto assetDto) {
         if (assetService.existsByCode(assetDto.getCode())) {
@@ -62,6 +51,17 @@ public class AssetController {
         BeanUtils.copyProperties(assetDto, asset);
         
         return ResponseEntity.status(HttpStatus.CREATED).body(assetService.save(asset));
+    }
+
+    @GetMapping("/{code}")
+    public ResponseEntity<Object> getOneAsset(@PathVariable(value = "code") String code) {
+        Optional<Asset> assetOptional = assetService.findByCode(code);
+
+        if (!assetOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Asset with code %s not found.", code));
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(assetOptional.get());
     }
 
     @PutMapping("/{code}")
