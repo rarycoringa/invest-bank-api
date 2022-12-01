@@ -67,7 +67,7 @@ public class Wallet implements Serializable {
     }
 
     public void deposit(BigDecimal value) {
-        this.balance.add(value);
+        this.balance = this.balance.add(value);
     }
 
     public void withdraw(BigDecimal value) throws WithdrawException {
@@ -75,6 +75,8 @@ public class Wallet implements Serializable {
             String message = String.format("Withdraw denied. Insufficient balance at the wallet %x.", this.number);
             throw new WithdrawException(message);
         }
+
+        this.balance = this.balance.subtract(value);
     }
 
 }
