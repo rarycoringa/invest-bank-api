@@ -13,8 +13,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import br.ufrn.imd.investbankapi.models.AssetTypeEnum;
-
 @Entity
 @Table(name = "assets")
 public class Asset implements Serializable {

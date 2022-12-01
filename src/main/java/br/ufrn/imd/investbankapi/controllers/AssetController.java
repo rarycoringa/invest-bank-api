@@ -1,12 +1,10 @@
 package br.ufrn.imd.investbankapi.controllers;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import javax.validation.Valid;
 
-import org.apache.catalina.connector.Response;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
