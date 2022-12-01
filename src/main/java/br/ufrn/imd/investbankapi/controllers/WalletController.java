@@ -18,8 +18,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.ufrn.imd.investbankapi.dtos.WalletDepositDto;
 import br.ufrn.imd.investbankapi.dtos.WalletDto;
+import br.ufrn.imd.investbankapi.dtos.WalletTransactionDto;
+import br.ufrn.imd.investbankapi.exceptions.WithdrawException;
 import br.ufrn.imd.investbankapi.models.Wallet;
 import br.ufrn.imd.investbankapi.services.WalletService;
 
@@ -93,7 +94,7 @@ public class WalletController {
     }
 
     @PutMapping("/{number}/deposit")
-    public ResponseEntity<Object> walletDeposit(@PathVariable(value = "number") int number, @RequestBody @Valid WalletDepositDto walletDepositDto) {
+    public ResponseEntity<Object> walletDeposit(@PathVariable(value = "number") int number, @RequestBody @Valid WalletTransactionDto walletTransactionDto) {
         Optional<Wallet> walletOptional = walletService.findByNumber(number);
 
         if (!walletOptional.isPresent()) {
@@ -102,10 +103,27 @@ public class WalletController {
 
         var wallet = walletOptional.get();
 
-        wallet.deposit(walletDepositDto.getValue());
+        wallet.deposit(walletTransactionDto.getValue());
 
         return ResponseEntity.status(HttpStatus.OK).body(walletService.save(wallet));
     }
 
-    // @PutMapping("/{number}/withdraw")
+    @PutMapping("/{number}/withdraw")
+    public ResponseEntity<Object> walletWithdraw(@PathVariable(value = "number") int number, @RequestBody @Valid WalletTransactionDto walletTransactionDto) {
+        Optional<Wallet> walletOptional = walletService.findByNumber(number);
+
+        if (!walletOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Wallet with number %s not found.", number));
+        }
+
+        var wallet = walletOptional.get();
+
+        try {
+            wallet.withdraw(walletTransactionDto.getValue());
+        } catch (WithdrawException exception) {
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(exception.getMessage());
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(walletService.save(wallet));
+    }
 }

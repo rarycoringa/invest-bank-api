@@ -75,6 +75,8 @@ public class Wallet implements Serializable {
             String message = String.format("Withdraw denied. Insufficient balance at the wallet %x.", this.number);
             throw new WithdrawException(message);
         }
+
+        this.balance = this.balance.subtract(value);
     }
 
 }
