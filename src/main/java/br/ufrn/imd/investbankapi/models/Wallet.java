@@ -67,7 +67,7 @@ public class Wallet implements Serializable {
     }
 
     public void deposit(BigDecimal value) {
-        this.balance.add(value);
+        this.balance = this.balance.add(value);
     }
 
     public void withdraw(BigDecimal value) throws WithdrawException {

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.ufrn.imd.investbankapi.dtos.WalletDepositDto;
 import br.ufrn.imd.investbankapi.dtos.WalletDto;
 import br.ufrn.imd.investbankapi.models.Wallet;
 import br.ufrn.imd.investbankapi.services.WalletService;
@@ -91,4 +92,20 @@ public class WalletController {
         return ResponseEntity.status(HttpStatus.OK).body(String.format("Wallet with number %s successfully deleted!", number));
     }
 
+    @PutMapping("/{number}/deposit")
+    public ResponseEntity<Object> walletDeposit(@PathVariable(value = "number") int number, @RequestBody @Valid WalletDepositDto walletDepositDto) {
+        Optional<Wallet> walletOptional = walletService.findByNumber(number);
+
+        if (!walletOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Wallet with number %s not found.", number));
+        }
+
+        var wallet = walletOptional.get();
+
+        wallet.deposit(walletDepositDto.getValue());
+
+        return ResponseEntity.status(HttpStatus.OK).body(walletService.save(wallet));
+    }
+
+    // @PutMapping("/{number}/withdraw")
 }
