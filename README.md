@@ -1,8 +1,6 @@
 # 🏦 Invest Bank API
 
-<a href="https://www.metropoledigital.ufrn.br" target="_blank>
-<img align="right" width="120" src="https://imd.ufrn.br/portal/assets/images/nova-marca/1A-Primaria-Gradiente.svg">
-</a>
+[<img align="right" width="120" src="https://imd.ufrn.br/portal/assets/images/nova-marca/1A-Primaria-Gradiente.svg">](https://www.metropoledigital.ufrn.br)
 
 ![License](https://img.shields.io/github/license/rarycoringa/invest-bank-api)
 
