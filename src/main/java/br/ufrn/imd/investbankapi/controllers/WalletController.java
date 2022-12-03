@@ -22,6 +22,7 @@ import br.ufrn.imd.investbankapi.dtos.WalletDto;
 import br.ufrn.imd.investbankapi.dtos.WalletTransactionDto;
 import br.ufrn.imd.investbankapi.exceptions.WithdrawException;
 import br.ufrn.imd.investbankapi.models.Wallet;
+import br.ufrn.imd.investbankapi.services.MarketplaceService;
 import br.ufrn.imd.investbankapi.services.WalletService;
 
 @RestController
@@ -30,9 +31,11 @@ import br.ufrn.imd.investbankapi.services.WalletService;
 public class WalletController {
     
     final WalletService walletService;
+    final MarketplaceService marketplaceService;
 
-    public WalletController(WalletService walletService) {
+    public WalletController(WalletService walletService, MarketplaceService marketplaceService) {
         this.walletService = walletService;
+        this.marketplaceService = marketplaceService;
     }
 
     @GetMapping
@@ -126,4 +129,18 @@ public class WalletController {
 
         return ResponseEntity.status(HttpStatus.OK).body(walletService.save(wallet));
     }
+
+    @GetMapping("/{number}/assets")
+    public ResponseEntity<Object> getWalletAssets(@PathVariable(value = "number") int number) {
+        Optional<Wallet> walletOptional = walletService.findByNumber(number);
+
+        if (!walletOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Wallet with number %s not found.", number));
+        }
+
+        Wallet wallet = walletOptional.get();
+
+        return ResponseEntity.status(HttpStatus.OK).body(marketplaceService.findAssetsByWallet(wallet));
+    }
+
 }
