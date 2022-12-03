@@ -9,6 +9,7 @@ import javax.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import br.ufrn.imd.investbankapi.exceptions.PurchaseException;
+import br.ufrn.imd.investbankapi.exceptions.SaleException;
 import br.ufrn.imd.investbankapi.exceptions.WithdrawException;
 import br.ufrn.imd.investbankapi.models.Asset;
 import br.ufrn.imd.investbankapi.models.PurchasedAsset;
@@ -51,5 +52,35 @@ public class MarketplaceService {
 
         return purchasedAsset;
 
+    }
+
+    @Transactional
+    public PurchasedAsset sale (Wallet wallet, Asset asset, int quantity) throws SaleException {
+        Optional<PurchasedAsset> purchasedAssetOptional = purchasedAssetRepository.findByWalletAndAsset(wallet, asset);
+
+        PurchasedAsset purchasedAsset;
+
+        if (!purchasedAssetOptional.isPresent()) {
+            String message = String.format("Sale denied. Asset %s not found at the wallet %x.", asset.getCode(), wallet.getNumber());
+            throw new SaleException(message);
+        } else {
+            purchasedAsset = purchasedAssetOptional.get();
+        }
+
+        try {
+            wallet.deposit(asset.getPrice().multiply(BigDecimal.valueOf(quantity)));
+
+            if (purchasedAsset.getQuantity() == quantity) {
+                purchasedAsset.saleAll();
+                purchasedAssetRepository.delete(purchasedAsset);
+            } else {
+                purchasedAsset.sale(quantity);
+                purchasedAssetRepository.save(purchasedAsset);
+            }
+        } catch (SaleException exception) {
+            throw exception;
+        }
+
+        return purchasedAsset;
     }
 }

@@ -14,6 +14,7 @@ import javax.persistence.Table;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import br.ufrn.imd.investbankapi.exceptions.PurchaseException;
+import br.ufrn.imd.investbankapi.exceptions.SaleException;
 
 @Entity
 @Table(name = "purchased_assets")
@@ -70,10 +71,10 @@ public class PurchasedAsset {
         this.quantity += quantity;
     }
 
-    public void sale(int quantity) throws PurchaseException {
+    public void sale(int quantity) throws SaleException {
         if (this.quantity < quantity) {
-            String message = String.format("Purchase denied. Insufficient quantity of asset %s at the wallet %x.", this.asset.getCode(), this.wallet.getNumber());
-            throw new PurchaseException(message);
+            String message = String.format("Sale denied. Insufficient quantity of asset %s at the wallet %x.", this.asset.getCode(), this.wallet.getNumber());
+            throw new SaleException(message);
         }
 
         this.quantity -= quantity;

@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.ufrn.imd.investbankapi.dtos.PurchaseAssetDto;
+import br.ufrn.imd.investbankapi.dtos.SaleAssetDto;
 import br.ufrn.imd.investbankapi.exceptions.PurchaseException;
+import br.ufrn.imd.investbankapi.exceptions.SaleException;
 import br.ufrn.imd.investbankapi.models.Asset;
 import br.ufrn.imd.investbankapi.models.PurchasedAsset;
 import br.ufrn.imd.investbankapi.models.Wallet;
@@ -63,6 +65,30 @@ public class MarketplaceController {
         return ResponseEntity.status(HttpStatus.CREATED).body(purchasedAsset);
     }
 
-    // @PostMapping("/sale")
-    // public ResponseEntity<Object> saleAsset(@RequestBody @Valid SaleAssetDto saleAssetDto) {}
+    @PostMapping("/sale")
+    public ResponseEntity<Object> saleAsset(@RequestBody @Valid SaleAssetDto saleAssetDto) {
+        Optional<Wallet> walletOptional = walletService.findByNumber(saleAssetDto.getWalletNumber());
+        Optional<Asset> assetOptional = assetService.findByCode(saleAssetDto.getAssetCode());
+
+        if (!walletOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Wallet with number %s not found.", saleAssetDto.getWalletNumber()));
+        }
+
+        if (!assetOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Asset with code %s not found.", saleAssetDto.getAssetCode()));
+        }
+
+        Wallet wallet = walletOptional.get();
+        Asset asset = assetOptional.get();
+        int quantity = saleAssetDto.getQuantity();
+        PurchasedAsset purchasedAsset;
+
+        try {
+            purchasedAsset = marketplaceService.sale(wallet, asset, quantity);
+        } catch (SaleException exception) {
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(exception.getMessage());
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(purchasedAsset);
+    }
 }
