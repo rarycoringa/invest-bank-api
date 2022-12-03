@@ -2,13 +2,17 @@ package br.ufrn.imd.investbankapi.models;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import br.ufrn.imd.investbankapi.exceptions.WithdrawException;
@@ -29,7 +33,10 @@ public class Wallet implements Serializable {
     private String owner;
 
     @Column(nullable = false, scale = 2)
-    private BigDecimal balance = new BigDecimal("0.00");
+    private BigDecimal balance = BigDecimal.ZERO;
+
+    @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PurchasedAsset> assets = new ArrayList<PurchasedAsset>();
 
     public Wallet() {}
 
