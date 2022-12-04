@@ -18,11 +18,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.ufrn.imd.investbankapi.dtos.PurchaseAssetDto;
+import br.ufrn.imd.investbankapi.dtos.SaleAssetDto;
 import br.ufrn.imd.investbankapi.dtos.WalletDto;
 import br.ufrn.imd.investbankapi.dtos.WalletTransactionDto;
+import br.ufrn.imd.investbankapi.exceptions.PurchaseException;
+import br.ufrn.imd.investbankapi.exceptions.SaleException;
 import br.ufrn.imd.investbankapi.exceptions.WithdrawException;
+import br.ufrn.imd.investbankapi.models.Asset;
+import br.ufrn.imd.investbankapi.models.PurchasedAsset;
 import br.ufrn.imd.investbankapi.models.Wallet;
-import br.ufrn.imd.investbankapi.services.MarketplaceService;
+import br.ufrn.imd.investbankapi.services.AssetService;
 import br.ufrn.imd.investbankapi.services.WalletService;
 
 @RestController
@@ -31,11 +37,11 @@ import br.ufrn.imd.investbankapi.services.WalletService;
 public class WalletController {
     
     final WalletService walletService;
-    final MarketplaceService marketplaceService;
+    final AssetService assetService;
 
-    public WalletController(WalletService walletService, MarketplaceService marketplaceService) {
+    public WalletController(WalletService walletService, AssetService assetService) {
         this.walletService = walletService;
-        this.marketplaceService = marketplaceService;
+        this.assetService = assetService;
     }
 
     @GetMapping
@@ -140,7 +146,61 @@ public class WalletController {
 
         Wallet wallet = walletOptional.get();
 
-        return ResponseEntity.status(HttpStatus.OK).body(marketplaceService.findAssetsByWallet(wallet));
+        return ResponseEntity.status(HttpStatus.OK).body(assetService.findAssetsByWallet(wallet));
+    }
+
+    @PostMapping("/{number}/assets/purchase")
+    public ResponseEntity<Object> purchaseAsset(@PathVariable(value = "number") int number, @RequestBody @Valid PurchaseAssetDto purchaseAssetDto) {
+        Optional<Wallet> walletOptional = walletService.findByNumber(number);
+        Optional<Asset> assetOptional = assetService.findByCode(purchaseAssetDto.getAssetCode());
+
+        if (!walletOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Wallet with number %s not found.", number));
+        }
+
+        if (!assetOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Asset with code %s not found.", purchaseAssetDto.getAssetCode()));
+        }
+
+        Wallet wallet = walletOptional.get();
+        Asset asset = assetOptional.get();
+        int quantity = purchaseAssetDto.getQuantity();
+        PurchasedAsset purchasedAsset;
+
+        try {
+            purchasedAsset = assetService.purchase(wallet, asset, quantity);
+        } catch (PurchaseException exception) {
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(exception.getMessage());
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(purchasedAsset);
+    }
+
+    @PostMapping("/{number}/assets/sale")
+    public ResponseEntity<Object> saleAsset(@PathVariable(value = "number") int number, @RequestBody @Valid SaleAssetDto saleAssetDto) {
+        Optional<Wallet> walletOptional = walletService.findByNumber(number);
+        Optional<Asset> assetOptional = assetService.findByCode(saleAssetDto.getAssetCode());
+
+        if (!walletOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Wallet with number %s not found.", number));
+        }
+
+        if (!assetOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Asset with code %s not found.", saleAssetDto.getAssetCode()));
+        }
+
+        Wallet wallet = walletOptional.get();
+        Asset asset = assetOptional.get();
+        int quantity = saleAssetDto.getQuantity();
+        PurchasedAsset purchasedAsset;
+
+        try {
+            purchasedAsset = assetService.sale(wallet, asset, quantity);
+        } catch (SaleException exception) {
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(exception.getMessage());
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(purchasedAsset);
     }
 
 }

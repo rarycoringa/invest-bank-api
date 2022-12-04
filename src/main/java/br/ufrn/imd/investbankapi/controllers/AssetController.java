@@ -59,7 +59,9 @@ public class AssetController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Asset with code %s not found.", code));
         }
 
-        return ResponseEntity.status(HttpStatus.OK).body(assetOptional.get());
+        Asset asset = assetOptional.get();
+        
+        return ResponseEntity.status(HttpStatus.OK).body(asset);
     }
 
     @PutMapping("/{code}")
@@ -88,7 +90,9 @@ public class AssetController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Asset with code %s not found.", code));
         }
 
-        assetService.delete(assetOptional.get());
+        Asset asset = assetOptional.get();
+
+        assetService.delete(asset);
 
         return ResponseEntity.status(HttpStatus.OK).body(String.format("Asset with code %s successfully deleted!", code));
     }
