@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.ufrn.imd.investbankapi.dtos.AssetDto;
+import br.ufrn.imd.investbankapi.dtos.AssetDTO;
 import br.ufrn.imd.investbankapi.models.Asset;
 import br.ufrn.imd.investbankapi.services.AssetService;
 
@@ -39,14 +39,14 @@ public class AssetController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> createAsset(@RequestBody @Valid AssetDto assetDto) {
-        if (assetService.existsByCode(assetDto.getCode())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(String.format("Code %s is already in use!", assetDto.getCode()));
+    public ResponseEntity<Object> createAsset(@RequestBody @Valid AssetDTO assetDTO) {
+        if (assetService.existsByCode(assetDTO.getCode())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(String.format("Code %s is already in use!", assetDTO.getCode()));
         }
 
         var asset = new Asset();
 
-        BeanUtils.copyProperties(assetDto, asset);
+        BeanUtils.copyProperties(assetDTO, asset);
         
         return ResponseEntity.status(HttpStatus.CREATED).body(assetService.save(asset));
     }
@@ -65,7 +65,7 @@ public class AssetController {
     }
 
     @PutMapping("/{code}")
-    public ResponseEntity<Object> updateAsset(@PathVariable(value = "code") String code, @RequestBody @Valid AssetDto assetDto) {
+    public ResponseEntity<Object> updateAsset(@PathVariable(value = "code") String code, @RequestBody @Valid AssetDTO assetDTO) {
         Optional<Asset> assetOptional = assetService.findByCode(code);
 
         if (!assetOptional.isPresent()) {
@@ -74,10 +74,10 @@ public class AssetController {
 
         var asset = assetOptional.get();
 
-        asset.setCode(assetDto.getCode());
-        asset.setName(assetDto.getName());
-        asset.setPrice(assetDto.getPrice());
-        asset.setType(assetDto.getType());
+        asset.setCode(assetDTO.getCode());
+        asset.setName(assetDTO.getName());
+        asset.setPrice(assetDTO.getPrice());
+        asset.setType(assetDTO.getType());
 
         return ResponseEntity.status(HttpStatus.OK).body(assetService.save(asset));
     }

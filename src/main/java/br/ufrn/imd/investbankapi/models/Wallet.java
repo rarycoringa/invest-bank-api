@@ -38,6 +38,9 @@ public class Wallet implements Serializable {
     @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PurchasedAsset> assets = new ArrayList<PurchasedAsset>();
 
+    @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PurchasedCryptocurrency> cryptocurrencies = new ArrayList<PurchasedCryptocurrency>();
+
     public Wallet() {}
 
     public Wallet(int number, String owner) {

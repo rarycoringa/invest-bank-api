@@ -18,17 +18,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.ufrn.imd.investbankapi.dtos.PurchaseAssetDto;
-import br.ufrn.imd.investbankapi.dtos.SaleAssetDto;
-import br.ufrn.imd.investbankapi.dtos.WalletDto;
-import br.ufrn.imd.investbankapi.dtos.WalletTransactionDto;
+import br.ufrn.imd.investbankapi.dtos.PurchaseDTO;
+import br.ufrn.imd.investbankapi.dtos.SaleDTO;
+import br.ufrn.imd.investbankapi.dtos.WalletDTO;
+import br.ufrn.imd.investbankapi.dtos.WalletTransactionDTO;
 import br.ufrn.imd.investbankapi.exceptions.PurchaseException;
 import br.ufrn.imd.investbankapi.exceptions.SaleException;
 import br.ufrn.imd.investbankapi.exceptions.WithdrawException;
 import br.ufrn.imd.investbankapi.models.Asset;
+import br.ufrn.imd.investbankapi.models.Cryptocurrency;
 import br.ufrn.imd.investbankapi.models.PurchasedAsset;
+import br.ufrn.imd.investbankapi.models.PurchasedCryptocurrency;
 import br.ufrn.imd.investbankapi.models.Wallet;
 import br.ufrn.imd.investbankapi.services.AssetService;
+import br.ufrn.imd.investbankapi.services.CryptocurrencyService;
 import br.ufrn.imd.investbankapi.services.WalletService;
 
 @RestController
@@ -38,10 +41,12 @@ public class WalletController {
     
     final WalletService walletService;
     final AssetService assetService;
+    final CryptocurrencyService cryptocurrencyService;
 
-    public WalletController(WalletService walletService, AssetService assetService) {
+    public WalletController(WalletService walletService, AssetService assetService, CryptocurrencyService cryptocurrencyService) {
         this.walletService = walletService;
         this.assetService = assetService;
+        this.cryptocurrencyService = cryptocurrencyService;
     }
 
     @GetMapping
@@ -50,14 +55,14 @@ public class WalletController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> createWallet(@RequestBody @Valid WalletDto walletDto) {
-        if (walletService.existsByNumber(walletDto.getNumber())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(String.format("Number %s is already in use!", walletDto.getNumber()));
+    public ResponseEntity<Object> createWallet(@RequestBody @Valid WalletDTO walletDTO) {
+        if (walletService.existsByNumber(walletDTO.getNumber())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(String.format("Number %s is already in use!", walletDTO.getNumber()));
         }
         
         var wallet = new Wallet();
         
-        BeanUtils.copyProperties(walletDto, wallet);
+        BeanUtils.copyProperties(walletDTO, wallet);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(walletService.save(wallet));
     }
@@ -74,7 +79,7 @@ public class WalletController {
     }
 
     @PutMapping("/{number}")
-    public ResponseEntity<Object> updateWallet(@PathVariable(value = "number") int number, @RequestBody @Valid WalletDto walletDto) {
+    public ResponseEntity<Object> updateWallet(@PathVariable(value = "number") int number, @RequestBody @Valid WalletDTO walletDTO) {
         Optional<Wallet> walletOptional = walletService.findByNumber(number);
 
         if (!walletOptional.isPresent()) {
@@ -83,8 +88,8 @@ public class WalletController {
 
         var wallet = walletOptional.get();
 
-        wallet.setNumber(walletDto.getNumber());
-        wallet.setOwner(walletDto.getOwner());
+        wallet.setNumber(walletDTO.getNumber());
+        wallet.setOwner(walletDTO.getOwner());
 
         return ResponseEntity.status(HttpStatus.OK).body(walletService.save(wallet));
     }
@@ -103,7 +108,7 @@ public class WalletController {
     }
 
     @PutMapping("/{number}/deposit")
-    public ResponseEntity<Object> walletDeposit(@PathVariable(value = "number") int number, @RequestBody @Valid WalletTransactionDto walletTransactionDto) {
+    public ResponseEntity<Object> walletDeposit(@PathVariable(value = "number") int number, @RequestBody @Valid WalletTransactionDTO walletTransactionDTO) {
         Optional<Wallet> walletOptional = walletService.findByNumber(number);
 
         if (!walletOptional.isPresent()) {
@@ -112,13 +117,13 @@ public class WalletController {
 
         var wallet = walletOptional.get();
 
-        wallet.deposit(walletTransactionDto.getValue());
+        wallet.deposit(walletTransactionDTO.getValue());
 
         return ResponseEntity.status(HttpStatus.OK).body(walletService.save(wallet));
     }
 
     @PutMapping("/{number}/withdraw")
-    public ResponseEntity<Object> walletWithdraw(@PathVariable(value = "number") int number, @RequestBody @Valid WalletTransactionDto walletTransactionDto) {
+    public ResponseEntity<Object> walletWithdraw(@PathVariable(value = "number") int number, @RequestBody @Valid WalletTransactionDTO walletTransactionDTO) {
         Optional<Wallet> walletOptional = walletService.findByNumber(number);
 
         if (!walletOptional.isPresent()) {
@@ -128,7 +133,7 @@ public class WalletController {
         var wallet = walletOptional.get();
 
         try {
-            wallet.withdraw(walletTransactionDto.getValue());
+            wallet.withdraw(walletTransactionDTO.getValue());
         } catch (WithdrawException exception) {
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(exception.getMessage());
         }
@@ -150,21 +155,21 @@ public class WalletController {
     }
 
     @PostMapping("/{number}/assets/purchase")
-    public ResponseEntity<Object> purchaseAsset(@PathVariable(value = "number") int number, @RequestBody @Valid PurchaseAssetDto purchaseAssetDto) {
+    public ResponseEntity<Object> purchaseAsset(@PathVariable(value = "number") int number, @RequestBody @Valid PurchaseDTO purchaseDTO) {
         Optional<Wallet> walletOptional = walletService.findByNumber(number);
-        Optional<Asset> assetOptional = assetService.findByCode(purchaseAssetDto.getAssetCode());
+        Optional<Asset> assetOptional = assetService.findByCode(purchaseDTO.getCode());
 
         if (!walletOptional.isPresent()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Wallet with number %s not found.", number));
         }
 
         if (!assetOptional.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Asset with code %s not found.", purchaseAssetDto.getAssetCode()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Asset with code %s not found.", purchaseDTO.getCode()));
         }
 
         Wallet wallet = walletOptional.get();
         Asset asset = assetOptional.get();
-        int quantity = purchaseAssetDto.getQuantity();
+        int quantity = purchaseDTO.getQuantity();
         PurchasedAsset purchasedAsset;
 
         try {
@@ -177,21 +182,21 @@ public class WalletController {
     }
 
     @PostMapping("/{number}/assets/sale")
-    public ResponseEntity<Object> saleAsset(@PathVariable(value = "number") int number, @RequestBody @Valid SaleAssetDto saleAssetDto) {
+    public ResponseEntity<Object> saleAsset(@PathVariable(value = "number") int number, @RequestBody @Valid SaleDTO saleDTO) {
         Optional<Wallet> walletOptional = walletService.findByNumber(number);
-        Optional<Asset> assetOptional = assetService.findByCode(saleAssetDto.getAssetCode());
+        Optional<Asset> assetOptional = assetService.findByCode(saleDTO.getCode());
 
         if (!walletOptional.isPresent()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Wallet with number %s not found.", number));
         }
 
         if (!assetOptional.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Asset with code %s not found.", saleAssetDto.getAssetCode()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Asset with code %s not found.", saleDTO.getCode()));
         }
 
         Wallet wallet = walletOptional.get();
         Asset asset = assetOptional.get();
-        int quantity = saleAssetDto.getQuantity();
+        int quantity = saleDTO.getQuantity();
         PurchasedAsset purchasedAsset;
 
         try {
@@ -203,58 +208,72 @@ public class WalletController {
         return ResponseEntity.status(HttpStatus.CREATED).body(purchasedAsset);
     }
 
-    @PostMapping("/{number}/assets/purchase")
-    public ResponseEntity<Object> purchaseAsset(@PathVariable(value = "number") int number, @RequestBody @Valid PurchaseAssetDto purchaseAssetDto) {
+    @GetMapping("/{number}/cryptocurrencies")
+    public ResponseEntity<Object> getWalletCryptocurrencies(@PathVariable(value = "number") int number) {
         Optional<Wallet> walletOptional = walletService.findByNumber(number);
-        Optional<Asset> assetOptional = assetService.findByCode(purchaseAssetDto.getAssetCode());
 
         if (!walletOptional.isPresent()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Wallet with number %s not found.", number));
         }
 
-        if (!assetOptional.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Asset with code %s not found.", purchaseAssetDto.getAssetCode()));
+        Wallet wallet = walletOptional.get();
+
+        return ResponseEntity.status(HttpStatus.OK).body(cryptocurrencyService.findCryptocurrenciesByWallet(wallet));
+    }
+
+    @PostMapping("/{number}/cryptocurrencies/purchase")
+    public ResponseEntity<Object> purchaseCryptocurrency(@PathVariable(value = "number") int number, @RequestBody @Valid PurchaseDTO purchaseDTO) {
+        Optional<Wallet> walletOptional = walletService.findByNumber(number);
+        Optional<Cryptocurrency> cryptocurrencyOptional = cryptocurrencyService.findByCode(purchaseDTO.getCode());
+
+        if (!walletOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Wallet with number %s not found.", number));
+        }
+
+        if (!cryptocurrencyOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Cryptocurrency with code %s not found.", purchaseDTO.getCode()));
         }
 
         Wallet wallet = walletOptional.get();
-        Asset asset = assetOptional.get();
-        int quantity = purchaseAssetDto.getQuantity();
-        PurchasedAsset purchasedAsset;
+        Cryptocurrency cryptocurrency = cryptocurrencyOptional.get();
+        int quantity = purchaseDTO.getQuantity();
+        PurchasedCryptocurrency purchasedCryptocurrency;
 
         try {
-            purchasedAsset = assetService.purchase(wallet, asset, quantity);
+            purchasedCryptocurrency = cryptocurrencyService.purchase(wallet, cryptocurrency, quantity);
         } catch (PurchaseException exception) {
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(exception.getMessage());
         }
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(purchasedAsset);
+        return ResponseEntity.status(HttpStatus.CREATED).body(purchasedCryptocurrency);
     }
 
-    @PostMapping("/{number}/assets/sale")
-    public ResponseEntity<Object> saleAsset(@PathVariable(value = "number") int number, @RequestBody @Valid SaleAssetDto saleAssetDto) {
+    @PostMapping("/{number}/cryptocurrencies/sale")
+    public ResponseEntity<Object> saleCryptocurrency(@PathVariable(value = "number") int number, @RequestBody @Valid SaleDTO saleDTO) {
         Optional<Wallet> walletOptional = walletService.findByNumber(number);
-        Optional<Asset> assetOptional = assetService.findByCode(saleAssetDto.getAssetCode());
+        Optional<Cryptocurrency> cryptocurrencyOptional = cryptocurrencyService.findByCode(saleDTO.getCode());
 
         if (!walletOptional.isPresent()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Wallet with number %s not found.", number));
         }
 
-        if (!assetOptional.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Asset with code %s not found.", saleAssetDto.getAssetCode()));
+        if (!cryptocurrencyOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(String.format("Cryptocurrency with code %s not found.", saleDTO.getCode()));
         }
 
         Wallet wallet = walletOptional.get();
-        Asset asset = assetOptional.get();
-        int quantity = saleAssetDto.getQuantity();
-        PurchasedAsset purchasedAsset;
+        Cryptocurrency cryptocurrency = cryptocurrencyOptional.get();
+        int quantity = saleDTO.getQuantity();
+        PurchasedCryptocurrency purchasedCryptocurrency;
 
         try {
-            purchasedAsset = assetService.sale(wallet, asset, quantity);
+            purchasedCryptocurrency = cryptocurrencyService.sale(wallet, cryptocurrency, quantity);
         } catch (SaleException exception) {
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(exception.getMessage());
         }
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(purchasedAsset);
+        return ResponseEntity.status(HttpStatus.CREATED).body(purchasedCryptocurrency);
     }
+
 
 }
