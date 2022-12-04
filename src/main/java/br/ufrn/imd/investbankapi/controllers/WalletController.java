@@ -29,7 +29,6 @@ import br.ufrn.imd.investbankapi.models.Asset;
 import br.ufrn.imd.investbankapi.models.PurchasedAsset;
 import br.ufrn.imd.investbankapi.models.Wallet;
 import br.ufrn.imd.investbankapi.services.AssetService;
-import br.ufrn.imd.investbankapi.services.MarketplaceService;
 import br.ufrn.imd.investbankapi.services.WalletService;
 
 @RestController
@@ -39,12 +38,10 @@ public class WalletController {
     
     final WalletService walletService;
     final AssetService assetService;
-    final MarketplaceService marketplaceService;
 
-    public WalletController(WalletService walletService, AssetService assetService, MarketplaceService marketplaceService) {
+    public WalletController(WalletService walletService, AssetService assetService) {
         this.walletService = walletService;
         this.assetService = assetService;
-        this.marketplaceService = marketplaceService;
     }
 
     @GetMapping
@@ -149,7 +146,7 @@ public class WalletController {
 
         Wallet wallet = walletOptional.get();
 
-        return ResponseEntity.status(HttpStatus.OK).body(marketplaceService.findAssetsByWallet(wallet));
+        return ResponseEntity.status(HttpStatus.OK).body(assetService.findAssetsByWallet(wallet));
     }
 
     @PostMapping("/{number}/assets/purchase")

@@ -50,6 +50,10 @@ public class AssetService {
         return assetRepository.existsByCode(code);
     }
 
+    public List<PurchasedAsset> findAssetsByWallet(Wallet wallet) {
+        return purchasedAssetRepository.findByWallet(wallet);
+    }
+
     @Transactional
     public PurchasedAsset purchase (Wallet wallet, Asset asset, int quantity) throws PurchaseException {
         Optional<PurchasedAsset> purchasedAssetOptional = purchasedAssetRepository.findByWalletAndAsset(wallet, asset);
