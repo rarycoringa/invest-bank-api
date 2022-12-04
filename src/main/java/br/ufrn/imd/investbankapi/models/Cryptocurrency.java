@@ -2,13 +2,17 @@ package br.ufrn.imd.investbankapi.models;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 @Entity
@@ -28,6 +32,9 @@ public class Cryptocurrency implements Serializable {
 
     @Column(nullable = false, scale = 2)
     private BigDecimal price;
+
+    @OneToMany(mappedBy = "cryptocurrency", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PurchasedCryptocurrency> cryptocurrencies = new ArrayList<PurchasedCryptocurrency>();
 
     public Cryptocurrency() {}
 

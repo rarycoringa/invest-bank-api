@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.Positive;
 
-public class WalletTransactionDto {
+public class WalletTransactionDTO {
     
     @Positive
     @Digits(integer = 6, fraction = 2)

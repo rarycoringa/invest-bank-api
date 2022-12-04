@@ -5,22 +5,22 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 
-public abstract class TransactionAssetDto {
+public abstract class PurchaseSaleTransactionDTO {
 
     @NotBlank
     @Size(max = 6)
-    private String assetCode;
+    private String code;
 
     @NotNull
     @Positive
     private int quantity;
 
-    public String getAssetCode() {
-        return assetCode;
+    public String getCode() {
+        return code;
     }
 
-    public void setAssetCode(String assetCode) {
-        this.assetCode = assetCode;
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public int getQuantity() {

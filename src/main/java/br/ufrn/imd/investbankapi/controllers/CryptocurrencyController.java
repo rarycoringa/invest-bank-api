@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.ufrn.imd.investbankapi.dtos.CryptocurrencyDto;
+import br.ufrn.imd.investbankapi.dtos.CryptocurrencyDTO;
 import br.ufrn.imd.investbankapi.models.Cryptocurrency;
 import br.ufrn.imd.investbankapi.services.CryptocurrencyService;
 
@@ -39,14 +39,14 @@ public class CryptocurrencyController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> createCryptocurrency(@RequestBody @Valid CryptocurrencyDto cryptocurrencyDto) {
-        if (cryptocurrencyService.existsByCode(cryptocurrencyDto.getCode())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(String.format("Code %s is already in use!", cryptocurrencyDto.getCode()));
+    public ResponseEntity<Object> createCryptocurrency(@RequestBody @Valid CryptocurrencyDTO cryptocurrencyDTO) {
+        if (cryptocurrencyService.existsByCode(cryptocurrencyDTO.getCode())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(String.format("Code %s is already in use!", cryptocurrencyDTO.getCode()));
         }
 
         var cryptocurrency = new Cryptocurrency();
 
-        BeanUtils.copyProperties(cryptocurrencyDto, cryptocurrency);
+        BeanUtils.copyProperties(cryptocurrencyDTO, cryptocurrency);
         
         return ResponseEntity.status(HttpStatus.CREATED).body(cryptocurrencyService.save(cryptocurrency));
 
@@ -66,7 +66,7 @@ public class CryptocurrencyController {
     }
 
     @PutMapping("/{code}")
-    public ResponseEntity<Object> updateAsset(@PathVariable(value = "code") String code, @RequestBody @Valid CryptocurrencyDto cryptocurrencyDto) {
+    public ResponseEntity<Object> updateAsset(@PathVariable(value = "code") String code, @RequestBody @Valid CryptocurrencyDTO cryptocurrencyDTO) {
         Optional<Cryptocurrency> cryptocurrencyOptional = cryptocurrencyService.findByCode(code);
 
         if (!cryptocurrencyOptional.isPresent()) {
@@ -75,9 +75,9 @@ public class CryptocurrencyController {
 
         var cryptocurrency = cryptocurrencyOptional.get();
 
-        cryptocurrency.setCode(cryptocurrencyDto.getCode());
-        cryptocurrency.setName(cryptocurrencyDto.getName());
-        cryptocurrency.setPrice(cryptocurrencyDto.getPrice());
+        cryptocurrency.setCode(cryptocurrencyDTO.getCode());
+        cryptocurrency.setName(cryptocurrencyDTO.getName());
+        cryptocurrency.setPrice(cryptocurrencyDTO.getPrice());
 
         return ResponseEntity.status(HttpStatus.OK).body(cryptocurrencyService.save(cryptocurrency));
     }
