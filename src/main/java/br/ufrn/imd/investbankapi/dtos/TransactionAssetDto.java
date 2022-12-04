@@ -7,10 +7,6 @@ import javax.validation.constraints.Size;
 
 public abstract class TransactionAssetDto {
 
-    @NotNull
-    @Positive
-    private int walletNumber;
-
     @NotBlank
     @Size(max = 6)
     private String assetCode;
@@ -18,14 +14,6 @@ public abstract class TransactionAssetDto {
     @NotNull
     @Positive
     private int quantity;
-
-    public int getWalletNumber() {
-        return walletNumber;
-    }
-
-    public void setWalletNumber(int walletNumber) {
-        this.walletNumber = walletNumber;
-    }
 
     public String getAssetCode() {
         return assetCode;
