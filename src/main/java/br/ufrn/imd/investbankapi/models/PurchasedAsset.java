@@ -13,7 +13,6 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import br.ufrn.imd.investbankapi.exceptions.PurchaseException;
 import br.ufrn.imd.investbankapi.exceptions.SaleException;
 
 @Entity
