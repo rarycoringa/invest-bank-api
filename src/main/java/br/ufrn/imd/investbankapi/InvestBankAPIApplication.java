@@ -28,6 +28,7 @@ public class InvestBankAPIApplication {
 		ArrayList<String> technologies = new ArrayList<String>();
 		technologies.add("Java");
 		technologies.add("Spring Boot");
+		technologies.add("Gradle");
 		technologies.add("Postgres");
 		technologies.add("Docker");
 
